@@ -1,0 +1,23 @@
+CREATE TABLE company (
+    id BIGSERIAL PRIMARY KEY,
+
+    symbol VARCHAR(50) NOT NULL UNIQUE,
+
+    company_name VARCHAR(255) NOT NULL,
+
+    isin VARCHAR(20) UNIQUE,
+
+    series VARCHAR(20),
+
+    sector VARCHAR(100),
+
+    industry VARCHAR(150),
+
+    listing_date DATE,
+
+    status VARCHAR(30) NOT NULL DEFAULT 'ACTIVE',
+
+    created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
+
+    updated_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP
+);

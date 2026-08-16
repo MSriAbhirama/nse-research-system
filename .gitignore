@@ -1,0 +1,28 @@
+# Maven
+**/target/
+
+# IDE
+.vscode/
+.idea/
+*.iml
+
+# Operating system
+.DS_Store
+Thumbs.db
+
+# Environment / secrets
+.env
+.env.*
+!.env.example
+
+# Logs
+*.log
+
+# Local Spring configuration
+application-local.properties
+application-local.yml
+
+#xlsx and csv files and exe
+*.xlsx
+*.csv
+*.exe
