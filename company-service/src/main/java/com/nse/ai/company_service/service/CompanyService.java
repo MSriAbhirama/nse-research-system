@@ -9,6 +9,7 @@ import com.nse.ai.company_service.dto.v1.CompanyCreateRequest;
 import com.nse.ai.company_service.dto.v1.CompanyResponse;
 import com.nse.ai.company_service.dto.v1.CompanyUpdateStatusRequest;
 import com.nse.ai.company_service.dto.v1.CompanyUpdateStatusResponse;
+import com.nse.ai.company_service.exception.CompanyNotFoundException;
 import com.nse.ai.company_service.model.CompanyModel;
 import com.nse.ai.company_service.model.CompanyStatus;
 import com.nse.ai.company_service.repo.CompanyRepo;
@@ -26,22 +27,18 @@ public class CompanyService {
         CompanyResponse companyResponse = new CompanyResponse();
         BeanUtils.copyProperties(companyCreateRequest, companyModel);
         companyModel.setStatus(CompanyStatus.ACTIVE);
+        System.out.println("Creating company: " +companyModel.getStatus()+" " + companyModel.getCompanyName() + " " + companyModel.getSymbol() + " " + companyModel.getIsin() + " " + companyModel.getSector() + " " + companyModel.getIndustry() + " " + companyModel.getSeries() + " " + companyModel.getListingDate());
         CompanyModel savedCompany = companyRepo.save(companyModel);
         BeanUtils.copyProperties(savedCompany, companyResponse);
-        System.out.println("Company created with ID: " + savedCompany.getId());
-        System.out.println(companyModel.getCompanyName() + " " + companyModel.getSymbol() + " " + companyModel.getIsin() + " " + companyModel.getSector() + " " + companyModel.getIndustry() + " " + companyModel.getSeries() + " " + companyModel.getListingDate());
+        System.out.println("Created company: " +companyResponse.getStatus()+" " + companyResponse.getCompanyName() + " " + companyResponse.getSymbol() + " " + companyResponse.getIsin() + " " + companyResponse.getSector() + " " + companyResponse.getIndustry() + " " + companyResponse.getSeries() + " " + companyResponse.getListingDate());
         return companyResponse;
     }
 
     public CompanyResponse getCompanyById(Long companyId) {
-        try{
-            CompanyModel companyModel = companyRepo.findById(companyId) .orElseThrow(() -> new RuntimeException("Company not found with ID: " + companyId));
+            CompanyModel companyModel = companyRepo.findById(companyId) .orElseThrow(() -> new CompanyNotFoundException("Company not found with ID: " + companyId));
             CompanyResponse companyResponse = new CompanyResponse();
             BeanUtils.copyProperties(companyModel, companyResponse);
             return companyResponse;
-        }catch(Exception e){
-            throw new RuntimeException("Error fetching company by ID", e);
-        }
     }
 
     public CompanyResponse getCompanyBySymbol(String symbol) {
@@ -49,7 +46,7 @@ public class CompanyService {
         CompanyModel company = companyRepo
                 .findBySymbol(symbol)
                 .orElseThrow(() ->
-                        new RuntimeException(
+                        new CompanyNotFoundException(
                                 "Company with symbol " + symbol + " not found"
                         ));
 
@@ -61,17 +58,10 @@ public class CompanyService {
     }
 
     public CompanyResponse getCompanyByIsin(String isin) {
-        try{
-            CompanyModel companyModel = companyRepo.findAll().stream()
-                    .filter(company -> company.getIsin().equalsIgnoreCase(isin))
-                    .findFirst()
-                    .orElseThrow(() -> new RuntimeException("Company not found with ISIN: " + isin));
+            CompanyModel companyModel = companyRepo.findByIsin(isin).orElseThrow(() -> new CompanyNotFoundException("Company not found with ISIN: " + isin));
             CompanyResponse companyResponse = new CompanyResponse();
             BeanUtils.copyProperties(companyModel, companyResponse);
             return companyResponse;
-        }catch(Exception e){
-            throw new RuntimeException("Error fetching company by ISIN", e);
-        }
     }
 
     public Page<CompanyResponse> getCompanies(Pageable pageable) {
@@ -108,7 +98,7 @@ public class CompanyService {
 
         CompanyModel company = companyRepo.findById(id)
                 .orElseThrow(() ->
-                        new RuntimeException(
+                        new CompanyNotFoundException(
                                 "Company not found: " + id
                         ));
 
