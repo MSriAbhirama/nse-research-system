@@ -6,6 +6,8 @@ import com.nse.ai.data_ingestion_service.client.CompanyServiceClient;
 import com.nse.ai.data_ingestion_service.dto.v1.CompanyIngestionRequest;
 import com.nse.ai.data_ingestion_service.dto.v1.CompanyResponse;
 
+import feign.FeignException.FeignClientException;
+
 @Service
 public class DataIngestionService {
 
@@ -16,7 +18,11 @@ public class DataIngestionService {
     }
 
     public CompanyResponse ingestCompany(CompanyIngestionRequest request) {
-        return companyServiceClient.createCompany(request);
+        try{
+            return companyServiceClient.getCompanyBySymbol(request.getSymbol());
+        } catch(FeignClientException.NotFound e){
+            return companyServiceClient.createCompany(request);
+        }
     }
 
 }
