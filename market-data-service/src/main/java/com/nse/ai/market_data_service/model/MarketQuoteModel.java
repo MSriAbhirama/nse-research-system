@@ -5,6 +5,7 @@ import java.math.BigDecimal;
 import java.time.OffsetDateTime;
 
 import org.hibernate.annotations.CreationTimestamp;
+import org.hibernate.annotations.UpdateTimestamp;
 
 import jakarta.persistence.*;
 import lombok.Data;
@@ -48,6 +49,7 @@ public class MarketQuoteModel {
     @Column(name = "fifty_two_week_low", nullable = false, precision = 20, scale = 4)
     private BigDecimal fiftyTwoWeekLow;
 
+    @UpdateTimestamp
     @Column(name = "last_updated_at", nullable = false)
     private OffsetDateTime lastUpdatedAt;
 
