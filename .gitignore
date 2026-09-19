@@ -17,6 +17,7 @@ Thumbs.db
 
 # Logs
 *.log
+*.txt
 
 # Local Spring configuration
 application-local.properties
