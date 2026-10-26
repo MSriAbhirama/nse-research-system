@@ -7,6 +7,7 @@ import com.nse.ai.data_ingestion_service.dto.v1.CompanyIngestionRequest;
 import com.nse.ai.data_ingestion_service.dto.v1.CompanyResponse;
 
 import feign.FeignException.FeignClientException;
+import io.github.resilience4j.circuitbreaker.annotation.CircuitBreaker;
 
 @Service
 public class DataIngestionService {
@@ -17,6 +18,7 @@ public class DataIngestionService {
         this.companyServiceClient = companyServiceClient;
     }
 
+    @CircuitBreaker(name = "companyService")
     public CompanyResponse ingestCompany(CompanyIngestionRequest request) {
         try{
             return companyServiceClient.getCompanyBySymbol(request.getSymbol());
