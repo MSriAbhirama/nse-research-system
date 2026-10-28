@@ -13,18 +13,21 @@ import io.github.resilience4j.circuitbreaker.annotation.CircuitBreaker;
 public class DataIngestionService {
 
     private final CompanyServiceClient companyServiceClient;
+    private final CompanyLookupService companyLookupService;
 
-    public DataIngestionService(CompanyServiceClient companyServiceClient) {
+    public DataIngestionService(
+            CompanyServiceClient companyServiceClient,
+            CompanyLookupService companyLookupService) {
         this.companyServiceClient = companyServiceClient;
+        this.companyLookupService = companyLookupService;
     }
 
     @CircuitBreaker(name = "companyService")
     public CompanyResponse ingestCompany(CompanyIngestionRequest request) {
-        try{
-            return companyServiceClient.getCompanyBySymbol(request.getSymbol());
-        } catch(FeignClientException.NotFound e){
+        try {
+            return companyLookupService.getCompanyBySymbol(request.getSymbol());
+        } catch (FeignClientException.NotFound e) {
             return companyServiceClient.createCompany(request);
         }
     }
-
 }
