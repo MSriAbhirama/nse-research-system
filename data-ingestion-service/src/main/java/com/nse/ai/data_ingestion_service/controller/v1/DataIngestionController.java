@@ -1,6 +1,11 @@
 package com.nse.ai.data_ingestion_service.controller.v1;
 
 import com.nse.ai.data_ingestion_service.service.MarketQuoteProducer;
+
+import java.util.concurrent.CompletableFuture;
+
+import org.apache.kafka.clients.producer.RecordMetadata;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
@@ -38,11 +43,22 @@ public class DataIngestionController{
     }
 
     @PostMapping("/market-quotes")
-    public ResponseEntity<String> publishMarketQuote(
+    public CompletableFuture<ResponseEntity<String>> publishMarketQuote(
             @RequestBody MarketQuoteEvent event) {
 
-        marketQuoteProducer.publish(event);
+        return marketQuoteProducer.publish(event)
+        .thenApply(result->{
+            RecordMetadata metadata = result.getRecordMetadata();
 
-        return ResponseEntity.ok("Market quote published to Kafka");
+            return ResponseEntity.accepted().body(
+                "Market quote published to Kafka topic: " + metadata.topic() +
+                ", partition: " + metadata.partition() +
+                ", offset: " + metadata.offset()
+            );
+        }).exceptionally(ex->{
+            return ResponseEntity.status(HttpStatus.SERVICE_UNAVAILABLE)
+                .body("Failed to publish market quote to Kafka: " + ex.getMessage());
+        });
+
     }
 }

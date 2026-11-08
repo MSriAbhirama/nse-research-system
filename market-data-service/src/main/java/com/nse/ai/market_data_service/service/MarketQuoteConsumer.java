@@ -3,6 +3,9 @@ package com.nse.ai.market_data_service.service;
 import com.nse.ai.market_data_service.dto.v1.MarketQuoteRequest;
 import com.nse.ai.market_data_service.dto.v1.kafka.MarketQuoteEvent;
 
+import org.apache.kafka.clients.consumer.ConsumerRecord;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.kafka.annotation.KafkaListener;
 import org.springframework.stereotype.Service;
 
@@ -11,30 +14,54 @@ public class MarketQuoteConsumer {
 
     private final MarketDataService marketDataService;
 
+    private static final Logger log =
+        LoggerFactory.getLogger(MarketQuoteConsumer.class);
+
     public MarketQuoteConsumer(MarketDataService marketDataService) {
         this.marketDataService = marketDataService;
     }
 
     @KafkaListener(
-            topics = "market-quotes",
-            groupId = "market-data-service",
-            containerFactory = "kafkaListenerContainerFactory"
+        topics = "market-quotes",
+        groupId = "market-data-service",
+        containerFactory = "kafkaListenerContainerFactory"
     )
-    public void consume(MarketQuoteEvent event) {
+    public void consume(ConsumerRecord<String, MarketQuoteEvent> record) {
 
-        System.out.println(
-                "Received market quote for: " + event.getSymbol()
+        MarketQuoteEvent event = record.value();
+
+        log.info(
+            "Received market quote. Symbol: {}, Partition: {}, Offset: {}",
+            event.getSymbol(),
+            record.partition(),
+            record.offset()
         );
 
-        System.out.println(
-                "Price: " + event.getLastPrice()
-        );
+        try {
 
-        marketDataService.saveOrUpdateQuote(
-                convertToRequest(event)
-        );
+            marketDataService.saveOrUpdateQuote(convertToRequest(event));
+
+            log.info(
+                "Successfully processed market quote. Symbol: {}, Price: {}, Partition: {}, Offset: {}",
+                event.getSymbol(),
+                event.getLastPrice(),
+                record.partition(),
+                record.offset()
+            );
+
+        } catch (RuntimeException exception) {
+
+            log.error(
+                "Failed to process market quote. Symbol: {}, Partition: {}, Offset: {}",
+                event.getSymbol(),
+                record.partition(),
+                record.offset(),
+                exception
+            );
+
+            throw exception;
+        }
     }
-
     private MarketQuoteRequest convertToRequest(MarketQuoteEvent event) {
 
         MarketQuoteRequest request = new MarketQuoteRequest();
